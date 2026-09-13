@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { ApiHelper } from '../../utils/apiHelper';
-import { LoginPage } from '../../pages/LoginPage';
-import { DashboardPage } from '../../pages/DashboardPage';
-import { PIMPage } from '../../pages/PIMPage';
-import { AddEmployeePage } from '../../pages/AddEmployeePage';
-import { EmployeeDetailsPage } from '../../pages/EmployeeDetailsPage';
-import employee from '../../test-data/employee.json';
-import { EmployeeListPage } from '../../pages/EmployeeListPage';
+import { ApiHelper } from '../utils/apiHelper';
+import { LoginPage } from '../pages/LoginPage';
+import { DashboardPage } from '../pages/DashboardPage';
+import { PIMPage } from '../pages/PIMPage';
+import { AddEmployeePage } from '../pages/AddEmployeePage';
+import { EmployeeDetailsPage } from '../pages/EmployeeDetailsPage';
+import { EmployeeListPage } from '../pages/EmployeeListPage';
+import employee from '../test-data/employee.json';
 
 
 test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
