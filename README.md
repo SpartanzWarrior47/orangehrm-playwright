@@ -56,6 +56,14 @@ The automated test validates the following employee lifecycle:
 ```text
 
 orangehrm-playwright/
+├── artifacts/
+│   ├── html-report/
+│   │   ├── index.html
+│   │   └── data/
+│   └── videos/
+│       ├── chromium-video.webm
+│       ├── firefox-video.webm
+│       └── webkit-video.webm
 ├── assets/
 │   └── warrior-cartoon.png
 ├── pages/
@@ -85,7 +93,18 @@ tests/ — Test specifications containing the employee lifecycle scenario.
 test-data/ — External JSON test data used by the test.
 utils/ — Reusable utilities, including API helper functionality.
 assets/ — Test assets used during automation, such as the employee profile picture.
+artifacts/ – Test execution artifacts, including the HTML report and browser test videos.
 playwright.config.ts — Playwright configuration, browser projects, timeouts, reporting, video, and screenshots.
+
+## Test Artifacts
+
+The repository includes artifacts from the latest test execution:
+
+- HTML test report: `artifacts/html-report/index.html`
+- Test execution videos:
+  - Chromium: `artifacts/videos/chromium-video.webm`
+  - Firefox: `artifacts/videos/firefox-video.webm`
+  - WebKit: `artifacts/videos/webkit-video.webm`
 
 ## Installation
 
