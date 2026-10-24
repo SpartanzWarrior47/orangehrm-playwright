@@ -10,8 +10,13 @@ on:
 
 jobs:
   regression:
-    name: Chromium Regression Tests
+    name: Regression - ${{ matrix.browser }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     env:
       CI: 'true'
@@ -32,16 +37,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
-      - name: Run Chromium regression tests
-        run: npx playwright test --grep @regression --project=chromium
+      - name: Run regression tests
+        run: npx playwright test --grep @regression --project=${{ matrix.browser }}
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 7
