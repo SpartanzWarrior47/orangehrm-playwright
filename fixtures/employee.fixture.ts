@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test as base, expect } from '@playwright/test';
 import { EmployeeApi } from '../api/EmployeeApi';
 import employeeData from '../test-data/employee.json';
@@ -21,13 +22,19 @@ export const test = base.extend<EmployeeFixtures>({
 
         const employeeApi = new EmployeeApi(page.context().request);
         const employeeId =
-            `${employeeData.employeeId}${Date.now().toString().slice(-4)}`;
+            `${employeeData.employeeId}${randomUUID().slice(0, 6)}`;
 
         const createResponse = await employeeApi.createEmployee({
             firstName: employeeData.firstName,
             lastName: employeeData.lastName,
             employeeId
         });
+
+        if (createResponse.status() !== 200) {
+            console.log('Employee ID:', employeeId);
+            console.log('Create status:', createResponse.status());
+            console.log('Create response:', await createResponse.text());
+        }
 
         expect(createResponse.status()).toBe(200);
         const responseBody = await createResponse.json();
