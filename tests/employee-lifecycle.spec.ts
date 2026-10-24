@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ApiHelper } from '../utils/apiHelper';
+import { EmployeeApi } from '../api/EmployeeApi';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { PIMPage } from '../pages/PIMPage';
@@ -17,7 +17,7 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
     const addEmployeePage = new AddEmployeePage(page);
     const employeeDetailsPage = new EmployeeDetailsPage(page);
     const employeeListPage = new EmployeeListPage(page);
-    const apiHelper = new ApiHelper(page.context().request);
+    const employeeApi = new EmployeeApi(page.context().request);
 
     // Generate a unique Employee ID to avoid collisions across browser runs.
     const employeeId = `${employee.employeeId}${Date.now()
@@ -25,7 +25,7 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
         .slice(-4)}`;
     await page.goto('/');
 
-    await loginPage.login('Admin', 'admin123');
+
 
     await expect(dashboardPage.dashboardHeading).toBeVisible();
     await pimPage.navigateToPIM();
@@ -34,6 +34,29 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
     await expect(addEmployeePage.firstName).toBeVisible({
         timeout: 30000
     });
+
+    //Debugging code
+
+    page.on('request', request => {
+        if (
+            request.method() === 'POST' &&
+            request.url().includes('/api/v2/pim/employees')
+        ) {
+            const body = request.postDataJSON();
+
+            console.log('Employee creation API request:');
+            console.log('Keys:', Object.keys(body));
+
+            for (const [key, value] of Object.entries(body)) {
+                if (typeof value === 'string') {
+                    console.log(`${key}: string (${value.length} characters)`);
+                } else {
+                    console.log(`${key}:`, value);
+                }
+            }
+        }
+    });
+
     //Add Employee
     await addEmployeePage.addEmployee(
         employee.firstName,
@@ -54,7 +77,7 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
     await expect(employeeDetailsPage.lastName).toHaveValue(employee.lastName);
     await expect(employeeDetailsPage.employeeId).toHaveValue(employeeId);
     // API validation confirms the employee was created in the backend.
-    const response = await apiHelper.getEmployee(employeeId);
+    const response = await employeeApi.getEmployee(employeeId);
     expect(response.status()).toBe(200);
 
     const responseBody = await response.json();
@@ -120,7 +143,7 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
         { timeout: 30000 }
     );
     // API validation confirms the employee Job Title and Employee status was updated in the backend.
-    const jobResponse = await apiHelper.getEmployee(employeeId);
+    const jobResponse = await employeeApi.getEmployee(employeeId);
 
     expect(jobResponse.status()).toBe(200);
 
@@ -157,7 +180,7 @@ test('Verify OrangeHRM employee lifecycle', async ({ page }) => {
     });
 
     // API validation - employee should no longer exist
-    const deleteResponse = await apiHelper.getEmployee(employeeId);
+    const deleteResponse = await employeeApi.getEmployee(employeeId);
 
     expect(deleteResponse.status()).toBe(200);
 
