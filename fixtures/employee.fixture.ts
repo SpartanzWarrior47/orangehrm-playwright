@@ -23,58 +23,68 @@ export const test = base.extend<EmployeeFixtures>({
         const employeeApi = new EmployeeApi(page.context().request);
         const employeeId =
             `${employeeData.employeeId}${randomUUID().slice(0, 6)}`;
+        let ownedEmployee: Employee | undefined;
+        let primaryFailure: unknown;
+        let testFailed = false;
 
-        const createResponse = await employeeApi.createEmployee({
-            firstName: employeeData.firstName,
-            lastName: employeeData.lastName,
-            employeeId
-        });
+        try {
+            const createResponse = await employeeApi.createEmployee({
+                firstName: employeeData.firstName,
+                lastName: employeeData.lastName,
+                employeeId
+            });
 
-        if (createResponse.status() !== 200) {
-            console.log('Employee ID:', employeeId);
-            console.log('Create status:', createResponse.status());
-            console.log('Create response:', await createResponse.text());
-        }
+            let responseBody: any;
+            if (createResponse.ok()) {
+                responseBody = await createResponse.json();
+                const data = responseBody?.data;
+                if (
+                    data?.employeeId === employeeId &&
+                    Number.isSafeInteger(data.empNumber) &&
+                    data.empNumber > 0
+                ) {
+                    ownedEmployee = {
+                        employeeId,
+                        empNumber: data.empNumber,
+                        firstName: data.firstName,
+                        lastName: data.lastName
+                    };
+                }
+            }
 
-        expect(createResponse.status()).toBe(200);
-        const responseBody = await createResponse.json();
+            if (createResponse.status() !== 200) {
+                console.log('Employee ID:', employeeId);
+                console.log('Create status:', createResponse.status());
+                console.log('Create response:', await createResponse.text());
+            }
 
-        expect(responseBody.data.employeeId).toBe(employeeId);
+            expect(createResponse.status()).toBe(200);
+            responseBody ??= await createResponse.json();
+            expect(responseBody.data.employeeId).toBe(employeeId);
+            expect(ownedEmployee).toBeDefined();
 
-
-        // --------------------
-        // Prepare Employee Data from response
-        // --------------------
-
-        const createdEmployee: Employee = {
-            employeeId: responseBody.data.employeeId,
-            empNumber: responseBody.data.empNumber,
-            firstName: responseBody.data.firstName,
-            lastName: responseBody.data.lastName
-        };
-
-        // --------------------
-        // Give the employee information to the test
-        // Test runs here
-        // --------------------
-        await page.goto('/');
-        await use(createdEmployee);
-
-        // --------------------
-        // Teardown / Cleanup
-        // --------------------
-
-        const response = await employeeApi.getEmployee(
-            createdEmployee.employeeId
-        );
-
-        if (response.ok()) {
-            const responseBody = await response.json();
-
-            if (responseBody.data?.length > 0) {
-                await employeeApi.deleteEmployee(
-                    createdEmployee.empNumber
-                );
+            await page.goto('/');
+            await use(ownedEmployee!);
+        } catch (error) {
+            primaryFailure = error;
+            testFailed = true;
+            throw error;
+        } finally {
+            if (ownedEmployee) {
+                try {
+                    await employeeApi.cleanupEmployee(
+                        ownedEmployee.employeeId,
+                        ownedEmployee.empNumber
+                    );
+                } catch (cleanupError) {
+                    if (testFailed) {
+                        throw new AggregateError(
+                            [primaryFailure, cleanupError],
+                            'Test and employee cleanup both failed'
+                        );
+                    }
+                    throw cleanupError;
+                }
             }
         }
     }

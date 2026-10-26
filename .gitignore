@@ -2,8 +2,10 @@
 # Playwright
 node_modules/
 /test-results/
-/playwright-report/
+/playwright-report*/
+/playwright-report*.zip
 /blob-report/
+/artifacts/
 /playwright/.cache/
 /playwright/.auth/
 .env
