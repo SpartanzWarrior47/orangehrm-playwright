@@ -61,6 +61,7 @@ jobs:
       BASE_URL: ${{ vars.BASE_URL }}
       ORANGEHRM_USERNAME: ${{ secrets.ORANGEHRM_USERNAME }}
       ORANGEHRM_PASSWORD: ${{ secrets.ORANGEHRM_PASSWORD }}
+      HOME: /root
 
     steps:
       - name: Checkout repository
